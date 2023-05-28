@@ -8,20 +8,30 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function App() {
 
   const STORAGE_KEY = "@toDos"
+  const STORAGE_STATE = "@state"
+
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({}); //hashmap
   useEffect(()=>{
     loadToDos();
+    loadState();
   }, [])
-  const travel = () => setWorking(false);
-  const work = () => setWorking(true);
+  const travel = async () => {
+    setWorking(false)
+    await saveState()
+  };
+  const work = async() => {
+    setWorking(true)
+    await saveState()
+  };
   const onChangeText = (payload)=>{
     setText(payload)
   }
   const saveToDos = async(toSave) =>{
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
   }
+
   const loadToDos = async() =>{
     const s = await AsyncStorage.getItem(STORAGE_KEY)
     setToDos(JSON.parse(s))
@@ -48,7 +58,17 @@ export default function App() {
         saveToDos(newToDos)
       }}
     ])
-    
+  }
+
+  const saveState = async() =>{
+    const state = working ? "work" : "travel"
+    await AsyncStorage.setItem(STORAGE_STATE, state)
+  }
+  const loadState = async() =>{
+    const state = await AsyncStorage.getItem(STORAGE_STATE)
+    state === "work" ? setWorking(true) : setWorking(false)
+    await saveState()
+
   }
 
   return (
