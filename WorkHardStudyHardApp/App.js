@@ -14,16 +14,20 @@ export default function App() {
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({}); //hashmap
   useEffect(()=>{
-    loadToDos();
     loadState();
+    loadToDos();
   }, [])
+  useEffect(()=>{
+    saveState();
+  }, [working])
+
   const travel = async () => {
     setWorking(false)
-    await saveState()
+    saveState()
   };
   const work = async() => {
     setWorking(true)
-    await saveState()
+    saveState()
   };
   const onChangeText = (payload)=>{
     setText(payload)
@@ -34,7 +38,11 @@ export default function App() {
 
   const loadToDos = async() =>{
     const s = await AsyncStorage.getItem(STORAGE_KEY)
-    setToDos(JSON.parse(s))
+    if(s){
+      setToDos(JSON.parse(s))
+    }else{
+      setToDos("")
+    }
   }
   const addToDo=async ()=>{
     if(text === ""){
@@ -44,7 +52,7 @@ export default function App() {
     const newToDos = {...toDos, [Date.now()]: {text,  working}}
     setToDos(newToDos)
     await saveToDos(newToDos)
-    setText("");
+    setText("")
   }
   const deleteToDo = async(key) =>{
     Alert.alert("Delete To Do?", "Are you sure?", [
@@ -66,9 +74,8 @@ export default function App() {
   }
   const loadState = async() =>{
     const state = await AsyncStorage.getItem(STORAGE_STATE)
-    state === "work" ? setWorking(true) : setWorking(false)
-    await saveState()
 
+    state === "work" ? work() : travel()
   }
 
   return (
