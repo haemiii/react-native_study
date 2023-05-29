@@ -9,7 +9,8 @@ import {
   ScrollView, 
   Alert,
   Modal,
-  Pressable
+  Pressable,
+  Platform
 } from 'react-native';
 import { theme } from './colors';
 import {Fontisto, FontAwesome} from "@expo/vector-icons"
@@ -72,17 +73,28 @@ export default function App() {
     setText("")
   }
   const deleteToDo = async(key) =>{
-    Alert.alert("Delete To Do?", "Are you sure?", [
-      {text : "Cancel"},
-      {text : "I'm sure", 
-      style : "destructive",
-      onPress : ()=>{
+    if(Platform.OS =="web"){
+      const ok = confirm("Do you want to delete this To Do?")
+      if(ok){
         const newToDos = {...toDos}
         delete newToDos[key]
         setToDos(newToDos)
         saveToDos(newToDos)
-      }}
-    ])
+      }
+    }else{
+      Alert.alert("Delete To Do?", "Are you sure?", [
+        {text : "Cancel"},
+        {text : "I'm sure", 
+        style : "destructive",
+        onPress : ()=>{
+          const newToDos = {...toDos}
+          delete newToDos[key]
+          setToDos(newToDos)
+          saveToDos(newToDos)
+        }}
+      ])
+    }
+    
   }
   const completeToDo = async(key) =>{
     const newToDos = {...toDos}
@@ -217,7 +229,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent : "space-between",
     alignItems : "center",
-    width : "90%",
+    width : "100%",
     marginTop : 100,
   } ,
   btnText : {
