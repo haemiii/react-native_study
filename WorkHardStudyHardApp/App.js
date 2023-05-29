@@ -1,8 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View , TouchableOpacity, TextInput, ScrollView, Alert} from 'react-native';
+import { 
+  StyleSheet, 
+  Text, 
+  View , 
+  TouchableOpacity, 
+  TextInput, 
+  ScrollView, 
+  Alert,
+  Modal,
+  Pressable
+} from 'react-native';
 import { theme } from './colors';
-import {Fontisto} from "@expo/vector-icons"
+import {Fontisto, FontAwesome} from "@expo/vector-icons"
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
@@ -12,7 +22,11 @@ export default function App() {
 
   const [working, setWorking] = useState(true);
   const [text, setText] = useState("");
+  const [editText, setEditText] = useState("");
   const [toDos, setToDos] = useState({}); //hashmap
+  const [modalVisible, setModalVisible] = useState(false);
+  const [keys, setKeys] = useState("");
+
   useEffect(()=>{
     loadState();
     loadToDos();
@@ -31,6 +45,9 @@ export default function App() {
   };
   const onChangeText = (payload)=>{
     setText(payload)
+  }
+  const onChangeEditText = (payload) =>{
+    setEditText(payload)
   }
   const saveToDos = async(toSave) =>{
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
@@ -56,7 +73,7 @@ export default function App() {
   }
   const deleteToDo = async(key) =>{
     Alert.alert("Delete To Do?", "Are you sure?", [
-      {text : "Cancle"},
+      {text : "Cancel"},
       {text : "I'm sure", 
       style : "destructive",
       onPress : ()=>{
@@ -82,6 +99,18 @@ export default function App() {
     setToDos(newToDos)
     saveToDos(newToDos)
   }
+  const getKey = async(key)=>{
+    setKeys(key);
+  }
+  const editToDo = async() =>{
+
+    const newToDos = {...toDos}
+    const edit = newToDos[keys]
+    edit.text = editText
+    console.log(edit)
+    setToDos(newToDos)
+    saveToDos(newToDos)
+  }
 
   const saveState = async() =>{
     const state = working ? "work" : "travel"
@@ -95,6 +124,34 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+          setModalVisible(!modalVisible);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Edit</Text>
+            <View style={styles.modalTextView}>
+              <TextInput onChangeText={onChangeEditText} placeholder={working ? "Add a To Do" : "Where do you want to go?"} style={styles.input}></TextInput>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => {
+                  setModalVisible(!modalVisible);
+                  editToDo()
+                }}
+                >
+                <FontAwesome name="check" size={20} color={theme.grey}></FontAwesome>
+
+              </Pressable>
+            </View>
+            
+          </View>
+        </View>
+      </Modal>
       <StatusBar style="auto" />
       <View style={styles.header}>
         <TouchableOpacity onPress={work}>
@@ -131,6 +188,11 @@ export default function App() {
 
           <Text style={styles.toDotext}>{toDos[key].text}</Text>
             <View style={styles.emojis}>
+            <Pressable onPress={()=> 
+              { setModalVisible(true)
+                getKey(key)}}>
+                <FontAwesome name="pencil" size={20} color={theme.grey}></FontAwesome>
+              </Pressable>
               <TouchableOpacity onPress={()=> completeToDo(key)}>
                 <Fontisto name="check" size={20} color={theme.grey}></Fontisto>
               </TouchableOpacity>
@@ -186,7 +248,7 @@ const styles = StyleSheet.create({
     fontWeight : "500"
   },
   emojis: {
-    width : 70,
+    width : 90,
     flexDirection : "row",
     justifyContent:"space-between"
   },
@@ -194,5 +256,55 @@ const styles = StyleSheet.create({
     fontSize : 16,
     textDecorationLine : "line-through",
     color : theme.grey
+  },
+
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+
+  },
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    fontSize : 25,
+    fontWeight : 500,
+    textAlign: 'center',
+  },
+  modalTextView : {
+    flexDirection : "row",
+    justifyContent: "center",
+    alignItems : "center"
   }
 });
+
