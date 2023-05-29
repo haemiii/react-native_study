@@ -67,6 +67,21 @@ export default function App() {
       }}
     ])
   }
+  const completeToDo = async(key) =>{
+    const newToDos = {...toDos}
+    const complete = newToDos[key]
+    complete.complete = true
+    setToDos(newToDos)
+    saveToDos(newToDos)
+  }
+
+  const doingToDo = async(key) =>{
+    const newToDos = {...toDos}
+    const complete = newToDos[key]
+    complete.complete = false
+    setToDos(newToDos)
+    saveToDos(newToDos)
+  }
 
   const saveState = async() =>{
     const state = working ? "work" : "travel"
@@ -100,11 +115,29 @@ export default function App() {
       <ScrollView>
         {Object.keys(toDos).map((key) => (
         toDos[key].working === working ? (
+          toDos[key].complete === true ? 
+          <View style={styles.toDo} key={key}>
+          <Text style={styles.completeText}>{toDos[key].text}</Text>
+            <View style={styles.emojis}>
+              <TouchableOpacity onPress={()=> doingToDo(key)}>
+                <Fontisto name="check" size={20} color={theme.grey}></Fontisto>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={()=> deleteToDo(key)}>
+                <Fontisto name="trash" size={20} color={theme.grey}></Fontisto>
+              </TouchableOpacity>
+            </View>
+        </View>:
         <View style={styles.toDo} key={key}>
+
           <Text style={styles.toDotext}>{toDos[key].text}</Text>
-          <TouchableOpacity onPress={()=> deleteToDo(key)}>
-            <Fontisto name="trash" size={20} color={theme.grey}></Fontisto>
-          </TouchableOpacity>
+            <View style={styles.emojis}>
+              <TouchableOpacity onPress={()=> completeToDo(key)}>
+                <Fontisto name="check" size={20} color={theme.grey}></Fontisto>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={()=> deleteToDo(key)}>
+                <Fontisto name="trash" size={20} color={theme.grey}></Fontisto>
+              </TouchableOpacity>
+            </View>
         </View>) : null
       ))}
       </ScrollView>
@@ -151,5 +184,15 @@ const styles = StyleSheet.create({
     color : "white",
     fontSize : 16,
     fontWeight : "500"
+  },
+  emojis: {
+    width : 70,
+    flexDirection : "row",
+    justifyContent:"space-between"
+  },
+  completeText:{
+    fontSize : 16,
+    textDecorationLine : "line-through",
+    color : theme.grey
   }
 });
